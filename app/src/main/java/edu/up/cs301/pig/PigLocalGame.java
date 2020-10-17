@@ -17,11 +17,13 @@ import android.util.Log;
  */
 public class PigLocalGame extends LocalGame {
 
+    private PigGameState pgs;
+
     /**
      * This ctor creates a new game state
      */
     public PigLocalGame() {
-        //TODO  You will implement this constructor
+        pgs = new PigGameState();
     }
 
     /**
@@ -29,7 +31,9 @@ public class PigLocalGame extends LocalGame {
      */
     @Override
     protected boolean canMove(int playerIdx) {
-        //TODO  You will implement this method
+        if (pgs.getCurrPlayer() == playerIdx){
+            return true;
+        }
         return false;
     }
 
@@ -40,21 +44,56 @@ public class PigLocalGame extends LocalGame {
      */
     @Override
     protected boolean makeMove(GameAction action) {
+        int currPlayerNum = pgs.getCurrPlayer();
+
+        if (action instanceof PigHoldAction){
+            if (currPlayerNum == 0){
+                pgs.setPlayer1Score(pgs.getPlayer1Score() + pgs.getTotal());
+                if (playerNames.length == 2){
+                    pgs.setCurrPlayer(1);
+                }
+                pgs.setTotal(0);
+                return true;
+            }
+            if (currPlayerNum == 1){
+                pgs.setPlayer2Score(pgs.getPlayer1Score() + pgs.getTotal());
+                pgs.setCurrPlayer(0);
+                pgs.setTotal(0);
+                return true;
+            }
+        } else if (action instanceof PigRollAction) {
+            pgs.setDieVal((int) (Math.random()) * 6);
+            if (pgs.getDieVal() == 1) {
+                pgs.setTotal(pgs.getTotal() + pgs.getDieVal());
+                return true;
+            } else {
+                pgs.setTotal(0);
+                if (playerNames.length == 2) {
+                    if (currPlayerNum == 0) {
+                        pgs.setCurrPlayer(1);
+                    }
+                    if (currPlayerNum == 1) {
+                        pgs.setCurrPlayer(0);
+                    }
+                }
+                return true;
+            }
+        }
         //TODO  You will implement this method
         return false;
     }//makeMove
-
     /**
      * send the updated state to a given player
      */
     @Override
     protected void sendUpdatedStateTo(GamePlayer p) {
         //TODO  You will implement this method
-    }//sendUpdatedSate
+        PigGameState gameState = pgs;
+        p.sendInfo(pgs);
 
+    }//sendUpdatedSate
     /**
      * Check if the game is over
-     *
      * @return
      * 		a message that tells who has won the game, or null if the
      * 		game is not over
@@ -62,6 +101,12 @@ public class PigLocalGame extends LocalGame {
     @Override
     protected String checkIfGameOver() {
         //TODO  You will implement this method
+        if (pgs.getPlayer1Score() >= 50){
+            return "Player 1 wins. Score: " + pgs.getPlayer1Score();
+        }
+        if (pgs.getPlayer1Score() >= 50){
+            return "Player 2 wins. Score: " + pgs.getPlayer1Score();
+        }
         return null;
     }
 
